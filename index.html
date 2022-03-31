@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head><title>API Test</title></head>
+  <body>
+    <div id="demo"></div>
+    <script>
+      function processGuess() {
+        let guess = document.getElementById("guess").value;
+        if (!validateGuess(parseInt(guess))) {
+          return false;
+        }
+        let request = 'guess='+guess;
+        let callback = function() { showFeedBack(JSON.parse(this.responseText)); document.getElementById("demo").innerHTML = this.responseText;}
+        postRequest(request, callback);
+      }
+      
+      function showFeedBack(feedback) {
+        
+        if (feedback["guesses-left"] <= 0) {
+          console.log(feedback);
+          document.getElementById("feedback").innerHTML = "Game Over! Correct answer was" + feedback["answer"];
+          document.getElementById("guess-submit").disabled=true;
+          return;
+        }
+        
+        if (feedback["discriminant"] < 0) {
+          document.getElementById("feedback").innerHTML = "Too low! You have " + feedback["guesses-left"] + " guesses left.";
+        } else if (feedback["discriminant"] > 0) {
+          document.getElementById("feedback").innerHTML = "Too high! You have " + feedback["guesses-left"] + " guesses left.";
+        } else {
+          document.getElementById("feedback").innerHTML = "You win!";
+          document.getElementById("guess-submit").disabled=true;
+        }
+      }
+      
+      function validateGuess(guess) {
+        if(!(guess >= 0 && guess <= 1000000)) {
+          alert("Guess must be an integer between 0 and 1 Million!");
+          return false;
+        }
+        return true;
+      }
+      
+      function resetGame() {
+        let callback = function() { document.getElementById("demo").innerHTML = this.responseText;}
+        let request = 'reset=true';
+        postRequest(request, callback);
+      }
+      
+      function postRequest(request, loadcb) {
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = loadcb;
+        xhttp.open('POST', "Guesser.php", true);
+        xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        xhttp.send(request);
+      }
+    </script>
+    
+     <h1> Number Guessing Game!</h1>
+    <br/>
+    <p> I'm thinking of a number between 1 and 1 Million. You have a total of 20 guesses to find the answer!</p>
+    
+    <form action="#" onsubmit="processGuess(); return false">
+      <label for="guess"> Guess a number: </label>
+      <input id="guess" name="guess"/>
+      <button type="submit" id="guess-submit">Submit Guess</button>
+    </form>
+    
+    <form id="reset-form" action="#" onsubmit="resetGame(); return false">
+      <button type="submit" id="reset">Reset Game</button>
+    </form>
+    
+    <div id="feedback"></div>
+  </body>
+</html>
